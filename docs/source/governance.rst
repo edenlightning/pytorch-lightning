@@ -19,6 +19,7 @@ Core Maintainers
 - Rohit Gupta (`rohitgr7 <https://github.com/rohitgr7>`_)
 - Lezwon Castelino (`lezwon <https://github.com/lezwon>`_)
 - Roger Shieh (`s-rog <https://github.com/s-rog>`_)
+- Carlos Mocholí (`carmocca <https://github.com/carmocca>`_)
 
 Board
 -----
