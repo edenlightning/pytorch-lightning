@@ -11,17 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import math
-import functools
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional, Union
-from collections.abc import Mapping, Sequence
-from collections import namedtuple
+from typing import Any, Optional
 
 import torch
-from torch import nn
+
 from pytorch_lightning.metrics.metric import Metric
-from pytorch_lightning.metrics.utils import to_onehot, METRIC_EPS, _input_format_classification_one_hot
+from pytorch_lightning.metrics.utils import METRIC_EPS, _input_format_classification_one_hot
 
 
 class Precision(Metric):
@@ -47,7 +42,6 @@ class Precision(Metric):
 
     Args:
         num_classes: Number of classes in the dataset.
-        beta: Beta coefficient in the F measure.
         threshold:
             Threshold value for binary or multi-label logits. default: 0.5
 
@@ -140,7 +134,6 @@ class Recall(Metric):
 
     Args:
         num_classes: Number of classes in the dataset.
-        beta: Beta coefficient in the F measure.
         threshold:
             Threshold value for binary or multi-label logits. default: 0.5
 
@@ -212,7 +205,7 @@ class Recall(Metric):
 
     def compute(self):
         """
-        Computes accuracy over state.
+        Computes recall over state.
         """
         if self.average == 'micro':
             return self.true_positives.sum().float() / (self.actual_positives.sum() + METRIC_EPS)

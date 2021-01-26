@@ -1,10 +1,16 @@
 """Root package info."""
 
-__version__ = '1.1.0-dev'
+import logging
+import os
+import sys
+import time
+
+_this_year = time.strftime("%Y")
+__version__ = '1.1.6'
 __author__ = 'William Falcon et al.'
 __author_email__ = 'waf2107@columbia.edu'
 __license__ = 'Apache-2.0'
-__copyright__ = 'Copyright (c) 2018-2020, %s.' % __author__
+__copyright__ = f'Copyright (c) 2018-{_this_year}, {__author__}.'
 __homepage__ = 'https://github.com/PyTorchLightning/pytorch-lightning'
 # this has to be simple string, see: https://github.com/pypa/twine/issues/522
 __docs__ = (
@@ -32,24 +38,28 @@ Documentation
 - https://pytorch-lightning.readthedocs.io/en/latest
 - https://pytorch-lightning.readthedocs.io/en/stable
 """
+_root_logger = logging.getLogger()
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.INFO)
 
-import logging as python_logging
+# if root logger has handlers, propagate messages up and let root logger process them
+if not _root_logger.hasHandlers():
+    _logger.addHandler(logging.StreamHandler())
+    _logger.propagate = False
 
-_logger = python_logging.getLogger("lightning")
-_logger.addHandler(python_logging.StreamHandler())
-_logger.setLevel(python_logging.INFO)
+
+PACKAGE_ROOT = os.path.dirname(__file__)
+PROJECT_ROOT = os.path.dirname(PACKAGE_ROOT)
 
 try:
     # This variable is injected in the __builtins__ by the build
     # process. It used to enable importing subpackages of skimage when
     # the binaries are not built
-    __LIGHTNING_SETUP__
+    _ = None if __LIGHTNING_SETUP__ else None
 except NameError:
-    __LIGHTNING_SETUP__ = False
+    __LIGHTNING_SETUP__: bool = False
 
-if __LIGHTNING_SETUP__:
-    import sys  # pragma: no-cover
-
+if __LIGHTNING_SETUP__:  # pragma: no-cover
     sys.stdout.write(f'Partial import of `{__name__}` during the build process.\n')  # pragma: no-cover
     # We are not importing the rest of the lightning during the build process, as it may not be compiled yet
 else:
@@ -67,13 +77,6 @@ else:
         'seed_everything',
         'metrics',
     ]
-
-    # necessary for regular bolts imports. Skip exception since bolts is not always installed
-    try:
-        from pytorch_lightning import bolts
-    except ImportError:
-        pass
-    # __call__ = __all__
 
 # for compatibility with namespace packages
 __import__('pkg_resources').declare_namespace(__name__)

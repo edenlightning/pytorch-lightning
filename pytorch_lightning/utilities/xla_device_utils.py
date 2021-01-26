@@ -14,11 +14,14 @@
 import functools
 import importlib
 import queue as q
+import traceback
 from multiprocessing import Process, Queue
 
 import torch
 
 XLA_AVAILABLE = importlib.util.find_spec("torch_xla") is not None
+#: define waiting time got checking TPU available in sec
+TPU_CHECK_TIMEOUT = 100
 
 if XLA_AVAILABLE:
     import torch_xla.core.xla_model as xm
@@ -28,8 +31,6 @@ def inner_f(queue, func, *args, **kwargs):  # pragma: no cover
     try:
         queue.put(func(*args, **kwargs))
     except Exception:
-        import traceback
-
         traceback.print_exc()
         queue.put(None)
 
@@ -40,10 +41,11 @@ def pl_multi_process(func):
         queue = Queue()
         proc = Process(target=inner_f, args=(queue, func, *args), kwargs=kwargs)
         proc.start()
-        proc.join(10)
+        proc.join(TPU_CHECK_TIMEOUT)
         try:
             return queue.get_nowait()
         except q.Empty:
+            traceback.print_exc()
             return False
 
     return wrapper
@@ -82,9 +84,19 @@ class XLADeviceUtils:
             return device_type == "TPU"
 
     @staticmethod
+    def xla_available() -> bool:
+        """
+        Check if XLA library is installed
+
+        Return:
+            A boolean value indicating if a XLA is installed
+        """
+        return XLA_AVAILABLE
+
+    @staticmethod
     def tpu_device_exists() -> bool:
         """
-        Public method to check if TPU is available
+        Runs XLA device check within a separate process
 
         Return:
             A boolean value indicating if a TPU device exists on the system
